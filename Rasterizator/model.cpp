@@ -48,7 +48,14 @@ Model::Model(std::string filename)
                     for (int j = 0; j < 3; j++)
                     {
                         std::getline(iss, vertix, '/');
-                        face[i][j] = std::stoi(vertix);
+                        try
+                        {
+                            face[i][j] = std::stoi(vertix);
+                        }
+                        catch (...)
+                        {
+                            face[i][j] = 0;
+                        }
                     }
                 }
                 _faces.push_back(face);

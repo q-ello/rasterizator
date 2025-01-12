@@ -7,6 +7,8 @@ mat4 ModelView;
 mat4 Viewport;
 mat4 Projection;
 
+const float depth = 255.f;
+
 //initialized operators and constructors
 Vec2i operator -(const Vec2i& a, const Vec2i& b)
 {
@@ -31,11 +33,11 @@ Vec3i operator +(const Vec3i& a, const Vec3f& b)
 void viewport(int x, int y, int w, int h) {
 	Viewport._14 = x + w / 2.f;
 	Viewport._24 = y + h / 2.f;
-	Viewport._34 = 255.f / 2.f;
+	Viewport._34 = depth / 2.f;
 
 	Viewport._11 = w / 2.f;
 	Viewport._22 = h / 2.f;
-	Viewport._33 = 255.f / 2.f;
+	Viewport._33 = depth / 2.f;
 }
 
 
@@ -76,7 +78,7 @@ Vec3f barycentric(Vec4f coords[3], Vec2f P) {
 	return { 1 - u.x - u.y, u.x, u.y };
 }
 
-void triangle(Vec4f screen_coords[3], IShader& shader, TGAImage& image, TGAImage& zbuffer)
+void triangle(Vec4f screen_coords[3], IShader& shader, TGAImage& image, TGAImage& zbuffer, Model* model)
 {
 	Vec2f bboxmin(FLT_MAX, FLT_MAX);
 	Vec2f bboxmax(FLT_MIN, FLT_MIN);
@@ -95,9 +97,9 @@ void triangle(Vec4f screen_coords[3], IShader& shader, TGAImage& image, TGAImage
 			Vec3f bar = barycentric(screen_coords, Vec2f(P.x, P.y));
 			float z = Vec3f(screen_coords[0].z, screen_coords[1].z, screen_coords[2].z).Dot(bar);
 			float w = Vec3f(screen_coords[0].w, screen_coords[1].w, screen_coords[2].w).Dot(bar);
-			int frag_depth = std::max(0, std::min(255, int(z / w + .5)));
+			int frag_depth = std::max(0, std::min((int)depth, int(z / w + .5)));
 			if (bar.x < 0 || bar.y < 0 || bar.z<0 || zbuffer.get(P.x, P.y).b>frag_depth) continue;
-			bool discard = shader.fragment(bar, color);
+			bool discard = shader.fragment(bar, color, model);
 			if (!discard) {
 				zbuffer.set(P.x, P.y, TGAColor(frag_depth));
 				image.set(P.x, P.y, color);

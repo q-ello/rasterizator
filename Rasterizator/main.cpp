@@ -4,15 +4,12 @@
 #include "model.h"
 #include "our_gl.h"
 
-
-
-
 Model* model;
 const int width = 800;
 const int height = 800;
 
 Vec3f light_dir{ 1, 1, 1 };
-Vec3f camera{1, 1, 5};
+Vec3f camera{-1, 1, 2};
 const Vec3f center{ 0, 0, 0 };
 
 struct MyShader : public IShader {
@@ -21,7 +18,7 @@ struct MyShader : public IShader {
 	mat4 uniform;
 	mat4 uniform_it;
 
-	virtual Vec4f vertex(int iface, int nthvert) {
+	virtual Vec4f vertex(int iface, int nthvert, Model* model) {
 		std::vector<std::vector<int>> face = model->face(iface);
 		if (!model->hasNormalMap())
 		{
@@ -67,7 +64,7 @@ struct MyShader : public IShader {
 		return transform * gl_Vertex;
 	}
 
-	virtual bool fragment(Vec3f bar, TGAColor& color) {
+	virtual bool fragment(Vec3f bar, TGAColor& color, Model* model) {
 		float diff;
 		Vec2f uv = Vec2f(varying_uv[0].Dot(bar), varying_uv[1].Dot(bar));
 		Vec3f n;
@@ -111,9 +108,10 @@ int main(int argc, char** argv) {
 	}
 	else
 	{
-		//model = new Model("obj/african_head.obj");
-		model = new Model("obj/bugatti.obj");
+		model = new Model("african_head.obj");
 	}
+
+	Model* model2 = new Model("Cat.obj");
 
 	TGAImage image(width, height, TGAImage::RGB);
 
@@ -131,15 +129,33 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < model->nfaces(); i++) {
 		Vec4f screen_coords[3];
 		for (int j = 0; j < 3; j++) {
-			screen_coords[j] = shader.vertex(i, j);
+			screen_coords[j] = shader.vertex(i, j, model);
 		}
-		triangle(screen_coords, shader, image, zbuffer);
+		triangle(screen_coords, shader, image, zbuffer, model);
+	}
+
+	for (int i = 0; i < model2->nfaces(); i++) {
+		Vec4f screen_coords[3];
+		for (int j = 0; j < 3; j++) {
+			screen_coords[j] = shader.vertex(i, j, model2);
+		}
+		triangle(screen_coords, shader, image, zbuffer, model2);
 	}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	zbuffer.flip_vertically();
-	image.write_tga_file("output.tga");
-	zbuffer.write_tga_file("zbuffer.tga");
-
+	if (argc == 2)
+	{
+		std::string name = std::string(argv[1]);
+		image.write_tga_file((name + ".tga").c_str());
+		zbuffer.write_tga_file((name + ".zbuffer.tga").c_str());
+	}
+	else
+	{
+		image.write_tga_file("output.tga");
+		zbuffer.write_tga_file("zbuffer.tga");
+	}
+	
+	delete model2;
 	return 0;
 }
