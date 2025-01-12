@@ -23,6 +23,19 @@ Model::Model(std::string filename)
                 Vec3f vertix;
                 ss >> vertix.x >> vertix.y >> vertix.z;
                 _vertices.push_back(vertix);
+
+                if (std::abs(vertix.x) > _scale)
+                {
+                    _scale = vertix.x;
+                }
+                if (std::abs(vertix.y) > _scale)
+                {
+                    _scale = vertix.y;
+                }
+                if (std::abs(vertix.z) > _scale)
+                {
+                    _scale = vertix.z;
+                }
             }
             else if (word == "f")
             {
@@ -35,7 +48,7 @@ Model::Model(std::string filename)
                     for (int j = 0; j < 3; j++)
                     {
                         std::getline(iss, vertix, '/');
-                        face[j][i] = std::stoi(vertix);
+                        face[i][j] = std::stoi(vertix);
                     }
                 }
                 _faces.push_back(face);
@@ -46,6 +59,12 @@ Model::Model(std::string filename)
                 ss >> texVertix.x >> texVertix.y;
                 _texVertices.push_back(texVertix);
             }
+            else if (word == "vn")
+            {
+                Vec3f normal;
+                ss >> normal.x >> normal.y >> normal.z;
+                _norms.push_back(normal);
+            }
             else
             {
                 break;
@@ -55,13 +74,15 @@ Model::Model(std::string filename)
 
     std::cout << "file has been read: " << _vertices.size() << " vertices, " << _faces.size() << " faces." << std::endl;
     load_texture(filename, "_diffuse.tga", _diffMap);
+    load_texture(filename, "_nm.tga", _normalMap);
+    load_texture(filename, "_spec.tga", _specularMap);
 
     file.close();
 }
 
 int Model::nfaces()
 {
-    return _faces.size();
+    return (int)_faces.size();
 }
 
 std::vector<std::vector<int>> Model::face(int i)
@@ -71,7 +92,7 @@ std::vector<std::vector<int>> Model::face(int i)
 
 Vec3f Model::vert(int i)
 {
-    return _vertices[i];
+    return _vertices[i]/_scale;
 }
 
 Vec2i Model::uv(int i)
@@ -80,9 +101,43 @@ Vec2i Model::uv(int i)
     return { int(vertix.x*_diffMap.get_width() + .5), int(vertix.y * _diffMap.get_height() + .5)};
 }
 
-TGAColor Model::diffuse(Vec2i uv)
+TGAColor Model::diffuse(Vec2f uv)
 {
-    return _diffMap.get(uv.x, uv.y);
+    if (_diffMap.get_bytespp())
+    {
+        return _diffMap.get(int(uv.x + .5), int(uv.y + .5));
+    }
+    else
+    {
+        return TGAColor(255, 255, 255, 255);
+    }
+}
+
+Vec3f Model::normal(int i)
+{
+    return _norms[i];
+}
+
+Vec3f Model::normal(Vec2f uv)
+{
+    TGAColor normal = _normalMap.get(int(uv.x + .5), int(uv.y + .5));
+    Vec3f normalVec = Vec3f( (float)normal.r, (float)normal.g, (float)normal.b);
+    normalVec = (normalVec * 2. / 255.) - Vec3f(1., 1., 1.);
+    return normalVec;
+}
+
+bool Model::hasNormalMap()
+{
+    return _normalMap.get_bytespp();
+}
+
+float Model::spec(Vec2f uv)
+{
+    if (_specularMap.get_bytespp())
+    {
+        return _specularMap.get(uv.x, uv.y).b;
+    }
+    else return 10.;
 }
 
 void Model::load_texture(std::string filename, const char* suffix, TGAImage& img)

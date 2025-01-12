@@ -67,6 +67,7 @@ struct TGAColor {
 		res.r *= a;
 		res.g *= a;
 		res.b *= a;
+
 		return res;
 	}
 };
