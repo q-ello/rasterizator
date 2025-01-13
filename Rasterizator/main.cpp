@@ -9,7 +9,7 @@ const int width = 800;
 const int height = 800;
 
 Vec3f light_dir{ 1, 1, 1 };
-Vec3f camera{-1, 1, 2};
+Vec3f camera{0, 0, 5};
 const Vec3f center{ 0, 0, 0 };
 
 struct MyShader : public IShader {
@@ -111,8 +111,6 @@ int main(int argc, char** argv) {
 		model = new Model("african_head.obj");
 	}
 
-	Model* model2 = new Model("Cat.obj");
-
 	TGAImage image(width, height, TGAImage::RGB);
 
 	TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
@@ -134,19 +132,12 @@ int main(int argc, char** argv) {
 		triangle(screen_coords, shader, image, zbuffer, model);
 	}
 
-	for (int i = 0; i < model2->nfaces(); i++) {
-		Vec4f screen_coords[3];
-		for (int j = 0; j < 3; j++) {
-			screen_coords[j] = shader.vertex(i, j, model2);
-		}
-		triangle(screen_coords, shader, image, zbuffer, model2);
-	}
-
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	zbuffer.flip_vertically();
 	if (argc == 2)
 	{
 		std::string name = std::string(argv[1]);
+		name = name.substr(0, name.length() - 4);
 		image.write_tga_file((name + ".tga").c_str());
 		zbuffer.write_tga_file((name + ".zbuffer.tga").c_str());
 	}
@@ -156,6 +147,5 @@ int main(int argc, char** argv) {
 		zbuffer.write_tga_file("zbuffer.tga");
 	}
 	
-	delete model2;
 	return 0;
 }
