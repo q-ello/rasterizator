@@ -1,5 +1,7 @@
 #include "model.h"
 
+//TODO: CREATE MODELVIEW
+
 Model::Model(std::string filename)
 {
 	std::ifstream file(filename);
@@ -59,6 +61,7 @@ Model::Model(std::string filename)
                     }
                 }
                 _faces.push_back(face);
+                
             }
             else if (word == "vt")
             {
@@ -144,7 +147,7 @@ float Model::spec(Vec2f uv)
     {
         return _specularMap.get(uv.x, uv.y).b;
     }
-    else return 10.;
+    else return defaultSpecular;
 }
 
 void Model::load_texture(std::string filename, const char* suffix, TGAImage& img)

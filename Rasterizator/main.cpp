@@ -5,12 +5,16 @@
 #include "our_gl.h"
 
 Model* model;
-const int width = 800;
-const int height = 800;
+std::vector<Model*> models;
+int width = 800;
+int height = 800;
 
 Vec3f light_dir{ 1, 1, 1 };
-Vec3f camera{0, 0, 5};
-const Vec3f center{ 0, 0, 0 };
+Vec3f camera{0, 0, 3};
+Vec3f center{ 0, 0, 0 };
+
+std::string message;
+
 
 struct MyShader : public IShader {
 	std::vector<Vec3f> varying_normal{ {0., 0., 0.},{0., 0., 0.}, {0., 0., 0.} };
@@ -61,7 +65,7 @@ struct MyShader : public IShader {
 		Vec4f gl_Vertex = Vec4f(model->vert(face[nthvert][0]), 1.); // read the vertex from .obj file
 		mat4 transform = Viewport * uniform;
 
-		return transform * gl_Vertex;
+		return Vec4f::Transform(gl_Vertex, transform.Transpose());
 	}
 
 	virtual bool fragment(Vec3f bar, TGAColor& color, Model* model) {
@@ -70,11 +74,11 @@ struct MyShader : public IShader {
 		Vec3f n;
 		if (model->hasNormalMap())
 		{
-			n = (uniform_it * Vec4f(model->normal(uv), 1.)).xyz();
+			n = Vec4f::Transform(Vec4f(model->normal(uv), 1.), uniform_it.Transpose()).xyz();
 			n.Normalize();
-			Vec3f l = (uniform * Vec4f(light_dir, 1.)).xyz();
+			Vec3f l = Vec4f::Transform(Vec4f(light_dir, 1.), uniform.Transpose()).xyz();
 			l.Normalize();
-			diff = n.Dot(l);
+			diff = n.Dot(l); 
 		}
 		else
 		{
@@ -101,14 +105,73 @@ struct MyShader : public IShader {
 	}
 };
 
+bool processCommand(const std::string& command)
+{
+	std::stringstream c{ command };
+	std::string arg;
+	std::vector<std::string> args{};
+	while (c >> arg)
+	{
+		args.push_back(arg);
+	}
+	if (args[0] == "render" && args.size() == 1)
+	{
+		return true;
+	}
+	if (args[0] == "light" && args.size() == 4)
+	{
+		
+	}
+	else if (args[0] == "resize" && args.size() == 3)
+	{
+
+	}
+	else if (args[0] == "camera" && args.size() == 4)
+	{
+
+	}
+	else if (args[0] == "center" && args.size() == 4)
+	{
+
+	}
+	else if (args[0] == "add_model" && args.size() == 5)
+	{
+
+	}
+	return false;
+}
+
 int main(int argc, char** argv) {
 	if (argc == 2)
 	{
 		model = new Model(argv[1]);
 	}
 	else
-	{
-		model = new Model("african_head.obj");
+	{ 
+		while (true)
+		{
+			std::cout << "Hello! This rasterizator will render your .obj files, but I need to put some disclaimers first:" << std::endl;
+			std::cout << "This program will render only triangles, so if your object has quad faces, then the object will only be half-rendered.\n";
+			std::cout << "This program can work with such textures as normalmap, diffusemap and specularmap. ";
+			std::cout << "To work, it needs to have them in the same location as.obj file in .tga format and be named as 'objname_nm.tga, 'objname_diffuse.tga' and 'objname_spec.tga' respectively.\n";
+			std::cout << "This is some data you can add or change, just type command:\n";
+			std::cout << "- resize int int - change width and height of output tga image (current: " << width << ' ' << height << ");\n";
+			std::cout << "- light float float float - change light direction (current: " << light_dir.x << ' ' << light_dir.y << ' ' << light_dir.z << ");\n";
+			std::cout << "- camera float float float - change camera position (current: " << camera.x << ' ' << camera.y << ' ' << camera.z << ");\n";
+			std::cout << "- center float float float - change lookat point position (current: " << center.x << ' ' << center.y << ' ' << center.z << ");\n";
+			std::cout << "- add_model filename.obj float float float - add another model to render with its position (models to render: " << models.size() << ");\n";
+			std::cout << "- render - that's it, render";
+			std::cout << std::endl;
+			std::cout << message << std::endl;
+			std::string command;
+			std::getline(std::cin, command);
+			if (processCommand(command))
+			{
+				break;
+			}
+			system("cls");
+
+		}
 	}
 
 	TGAImage image(width, height, TGAImage::RGB);

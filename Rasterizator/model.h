@@ -30,6 +30,7 @@ private:
 	std::vector<Vec2f> _texVertices{ {0., 0.} };
 	std::vector<Vec3f> _norms{ {0., 0., 0.} };
 	float _scale{ 1 };
+	float default_specular{ 10 };
 
 	void load_texture(std::string filename, const char* suffix, TGAImage& img);
 
