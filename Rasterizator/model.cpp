@@ -2,7 +2,8 @@
 
 //TODO: CREATE MODELVIEW
 
-Model::Model(std::string filename)
+Model::Model(std::string filename, Vec3f modelCenter, float specCoeff)
+    : _defaultSpec{specCoeff}
 {
 	std::ifstream file(filename);
 
@@ -87,6 +88,11 @@ Model::Model(std::string filename)
     load_texture(filename, "_nm.tga", _normalMap);
     load_texture(filename, "_spec.tga", _specularMap);
 
+    for (int i = 0; i < 3; i++)
+    {
+        _ModelView(i, 3) = -modelCenter[i];
+    }
+
     file.close();
 }
 
@@ -147,7 +153,12 @@ float Model::spec(Vec2f uv)
     {
         return _specularMap.get(uv.x, uv.y).b;
     }
-    else return defaultSpecular;
+    else return _defaultSpec;
+}
+
+mat4 Model::ModelView()
+{
+    return _ModelView;
 }
 
 void Model::load_texture(std::string filename, const char* suffix, TGAImage& img)

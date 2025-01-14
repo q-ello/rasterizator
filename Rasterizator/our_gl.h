@@ -2,7 +2,7 @@
 #include "geometry.h"
 #include "model.h"
 
-extern mat4 ModelView;
+extern mat4 View;
 extern mat4 Viewport;
 extern mat4 Projection;
 

@@ -12,7 +12,7 @@
 class Model
 {
 public:
-	Model(std::string filename);
+	Model(std::string filename, Vec3f center = Vec3f(0., 0., 0.), float specCoeff = 10.f);
 
 	int nfaces();
 	std::vector<std::vector<int>> face(int i);
@@ -24,13 +24,16 @@ public:
 	bool hasNormalMap();
 	float spec(Vec2f uv);
 
+	mat4 ModelView();
+
 private:
 	std::vector<Vec3f> _vertices{ {0., 0., 0.} };
 	std::vector<std::vector<std::vector<int>>> _faces;
 	std::vector<Vec2f> _texVertices{ {0., 0.} };
 	std::vector<Vec3f> _norms{ {0., 0., 0.} };
 	float _scale{ 1 };
-	float default_specular{ 10 };
+	mat4 _ModelView;
+	float _defaultSpec;
 
 	void load_texture(std::string filename, const char* suffix, TGAImage& img);
 

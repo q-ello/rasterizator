@@ -3,7 +3,7 @@
 #include "our_gl.h"
 #include <iostream>
 #include <algorithm>
-mat4 ModelView;
+mat4 View;
 mat4 Viewport;
 mat4 Projection;
 
@@ -54,10 +54,9 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up) {
 	Vec3f y = z.Cross(x);
 	y.Normalize();
 	for (int i = 0; i < 3; i++) {
-		ModelView(0, i) = x[i];
-		ModelView(1, i) = y[i];
-		ModelView(2, i) = z[i];
-		ModelView(i, 3) = -center[i];
+		View(0, i) = x[i];
+		View(1, i) = y[i];
+		View(2, i) = z[i];
 	}
 }
 
