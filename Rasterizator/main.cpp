@@ -3,6 +3,7 @@
 #include "tgaimage.h"
 #include "model.h"
 #include "our_gl.h"
+#include <ctime> 
 
 Model* model;
 std::vector<Model*> models;
@@ -106,6 +107,7 @@ struct MyShader : public IShader {
 		return false;                              
 	}
 };
+
 
 bool processCommand(const std::string& command)
 {
@@ -259,11 +261,13 @@ int main(int argc, char** argv) {
 			system("cls");
 
 		}
+		models.push_back(new Model("obj/african_head.obj"));
 	}
 
 	TGAImage image(width, height, TGAImage::RGB);
 
 	TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
+	TGAImage output(width, height, TGAImage::RGB);
 	Vec3f coeff = camera - center; 
 	projection(-1.f / coeff.Length());
 	light_dir.Normalize();
@@ -285,15 +289,63 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	Vec2i coords[2][3] = { 
+		{
+			Vec2i(0, 0), 
+			Vec2i(0, image.get_height()), 
+			Vec2i(image.get_width(), image.get_height())
+		},
+		{
+			Vec2i(0, 0),
+			Vec2i(image.get_width(), image.get_height()),
+			Vec2i(image.get_width(), 0)
+}
+	};
+
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	zbuffer.flip_vertically();
+	output.flip_vertically();
 	if (argc == 2)
 	{
 		outputName = std::string(argv[1]);
 		outputName = outputName.substr(0, outputName.length() - 4);
 	}
 	image.write_tga_file((outputName + ".tga").c_str());
-	zbuffer.write_tga_file((outputName + ".zbuffer.tga").c_str());
+	zbuffer.write_tga_file((outputName + "_zbuffer.tga").c_str());
+
+	//fog shader
+	FogShader fogshader;
+	fogshader.image = &image;
+	fogshader.zbuffer = &zbuffer;
+
+	for (Vec2i* c : coords)
+	{
+		triangle(c, fogshader, image, zbuffer, output);
+	}
+	output.write_tga_file((outputName + "_fog.tga").c_str());
+
+	//noise shader
+	/*srand((unsigned)time(0));
+
+	NoiseShader noiseShader;
+	noiseShader.image = &image;
+	for (Vec2i* c : coords)
+	{
+		triangle(c, noiseShader, image, zbuffer, output);
+	}
+
+	output.write_tga_file((outputName + "_noise.tga").c_str());*/
+
+
+	//negative shader
+	/*NegativeShader negShader;
+	negShader.image = &image;
+	for (Vec2i* c : coords)
+	{
+		triangle(c, negShader, image, zbuffer, output);
+	}
+
+	output.write_tga_file((outputName + "_negative.tga").c_str());*/
 
 	models.clear();
 	

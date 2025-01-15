@@ -77,6 +77,19 @@ Vec3f barycentric(Vec4f coords[3], Vec2f P) {
 	return { 1 - u.x - u.y, u.x, u.y };
 }
 
+Vec3f barycentric(Vec2i coords[3], Vec2f P) {
+	Vec2f A = Vec2f(coords[0].x, coords[0].y);
+	Vec2f B = Vec2f(coords[1].x, coords[1].y);
+	Vec2f C = Vec2f(coords[2].x, coords[2].y);
+	Vec2f vx = B - A;
+	Vec2f vy = C - A;
+	Vec2f vz = A - P;
+	Vec3f u = Vec3f(vx.x, vy.x, vz.x).Cross(Vec3f(vx.y, vy.y, vz.y));
+	if (std::abs(u.z) < 1) return { -1, 1, 1 };
+	u /= u.z;
+	return { 1 - u.x - u.y, u.x, u.y };
+}
+
 void triangle(Vec4f screen_coords[3], IShader& shader, TGAImage& image, TGAImage& zbuffer, Model* model)
 {
 	Vec2f bboxmin(FLT_MAX, FLT_MAX);
@@ -108,5 +121,53 @@ void triangle(Vec4f screen_coords[3], IShader& shader, TGAImage& image, TGAImage
 }
 
 IShader::~IShader()
+{}
+
+
+bool FogShader::fragment(Vec3f bar, TGAColor& color, Model* model)
 {
+	int fogness = zbuffer->get(bar.x, bar.y).b;
+
+	TGAColor fog = TGAColor(255 - fogness);
+
+	color = image->get(bar.x, bar.y) + fog;
+	return false;
+}
+
+void triangle(Vec2i screen_coords[3], IShader& shader, TGAImage& image, TGAImage& zbuffer, TGAImage& output)
+{
+	Vec2i bboxmin(FLT_MAX, FLT_MAX);
+	Vec2i bboxmax(FLT_MIN, FLT_MIN);
+	Vec2i clamp(image.get_width(), image.get_height());
+
+	for (int i = 0; i < 3; i++) {
+		bboxmin.x = std::max(0, std::min(bboxmin.x, screen_coords[i].x));
+		bboxmin.y = std::max(0, std::min(bboxmin.y, screen_coords[i].y));
+		bboxmax.x = std::min(clamp.x, std::max(bboxmax.x, screen_coords[i].x));
+		bboxmax.y = std::min(clamp.y, std::max(bboxmax.y, screen_coords[i].y));
+	}
+	Vec2i P;
+	TGAColor color;
+	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+			Vec3f bar = barycentric(screen_coords, Vec2f(P.x, P.y));
+			if (bar.x < 0 || bar.y < 0 || bar.z < 0) continue;
+			bool discard = shader.fragment(Vec3f(P.x, P.y, 1), color, nullptr);
+			if (!discard) {
+				output.set(P.x, P.y, color);
+			}
+		}
+	}
+}
+
+bool NoiseShader::fragment(Vec3f bar, TGAColor& color, Model* model)
+{
+	color = image->get(bar.x, bar.y) + TGAColor(100) * ((float)rand() / (float)RAND_MAX);
+	return false;
+}
+
+bool NegativeShader::fragment(Vec3f bar, TGAColor& color, Model* model)
+{
+	color = -(image->get(bar.x, bar.y));
+	return false;
 }

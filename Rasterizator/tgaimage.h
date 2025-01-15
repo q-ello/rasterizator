@@ -64,10 +64,28 @@ struct TGAColor {
 	TGAColor operator *(const float a)
 	{
 		TGAColor res = *this;
-		res.r *= a;
-		res.g *= a;
-		res.b *= a;
+		res.r = std::min(res.r * a, 255.f);
+		res.g = std::min(res.r * a, 255.f);
+		res.b = std::min(res.r * a, 255.f);
+		return res;
+	}
 
+	TGAColor operator +(const TGAColor& c)
+	{
+		TGAColor res = *this;
+		res.r = std::min(res.r + c.r, 255);
+		res.g = std::min(res.g + c.g, 255);
+		res.b = std::min(res.b + c.b, 255);
+
+		return res;
+	}
+
+	TGAColor operator -()
+	{
+		TGAColor res = *this;
+		res.r = 255 - res.r;
+		res.g = 255 - res.g;
+		res.b = 255 - res.b;
 		return res;
 	}
 };
