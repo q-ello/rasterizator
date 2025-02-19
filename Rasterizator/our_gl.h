@@ -50,3 +50,13 @@ struct NegativeShader : public IShader
     };
     bool fragment(Vec3f bar, TGAColor& color, Model* model = nullptr) override;
 };
+
+struct DesaturatingShader : public IShader
+{
+    TGAImage* image;
+    Vec4f vertex(int iface, int vertex, Model* model) override
+    {
+        return Vec4f{ 0., 0., 0., 0. };
+    };
+    bool fragment(Vec3f bar, TGAColor& color, Model* model = nullptr) override;
+};

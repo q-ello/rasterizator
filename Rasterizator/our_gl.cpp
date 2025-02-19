@@ -1,4 +1,4 @@
-#define NOMINMAX
+﻿#define NOMINMAX
 
 #include "our_gl.h"
 #include <iostream>
@@ -162,12 +162,19 @@ void triangle(Vec2i screen_coords[3], IShader& shader, TGAImage& image, TGAImage
 
 bool NoiseShader::fragment(Vec3f bar, TGAColor& color, Model* model)
 {
-	color = image->get(bar.x, bar.y) + TGAColor(100) * ((float)rand() / (float)RAND_MAX);
+	color = image->get(bar.x, bar.y) + TGAColor(50) * ((float)rand() / (float)RAND_MAX);
 	return false;
 }
 
 bool NegativeShader::fragment(Vec3f bar, TGAColor& color, Model* model)
 {
 	color = -(image->get(bar.x, bar.y));
+	return false;
+}
+
+bool DesaturatingShader::fragment(Vec3f bar, TGAColor& color, Model* model)
+{
+	TGAColor с = image->get(bar.x, bar.y);
+	color = TGAColor((с.r + с.g + с.b) / 3);
 	return false;
 }

@@ -325,7 +325,7 @@ int main(int argc, char** argv) {
 	output.write_tga_file((outputName + "_fog.tga").c_str());
 
 	//noise shader
-	/*srand((unsigned)time(0));
+	srand((unsigned)time(0));
 
 	NoiseShader noiseShader;
 	noiseShader.image = &image;
@@ -334,18 +334,28 @@ int main(int argc, char** argv) {
 		triangle(c, noiseShader, image, zbuffer, output);
 	}
 
-	output.write_tga_file((outputName + "_noise.tga").c_str());*/
+	output.write_tga_file((outputName + "_noise.tga").c_str());
 
 
 	//negative shader
-	/*NegativeShader negShader;
+	NegativeShader negShader;
 	negShader.image = &image;
 	for (Vec2i* c : coords)
 	{
 		triangle(c, negShader, image, zbuffer, output);
 	}
 
-	output.write_tga_file((outputName + "_negative.tga").c_str());*/
+	output.write_tga_file((outputName + "_negative.tga").c_str());
+
+	//desaturating shader
+	DesaturatingShader desShader;
+	desShader.image = &image;
+	for (Vec2i* c : coords)
+	{
+		triangle(c, desShader, image, zbuffer, output);
+	}
+
+	output.write_tga_file((outputName + "_desaturated.tga").c_str());
 
 	models.clear();
 	
